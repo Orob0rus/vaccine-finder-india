@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type Centers struct {
@@ -110,6 +112,14 @@ func findVaccinationSlots(date string, district_id, age int) {
 }
 
 func main() {
-	findVaccinationSlots("14-05-2021", 506, 24)
+	var age int
+	flag.IntVar(&age, "age", 18, "Age of the vaccine recipient")
+	var date string
+	flag.StringVar(&date, "date", time.Now().Format("02-01-2006"), "Choose the start date, slots for next 7 days will be searched")
+	var district int
+	flag.IntVar(&district, "district", 1, "Select the district")
+	flag.Parse()
+
+	findVaccinationSlots(date, district, age)
 	return
 }
