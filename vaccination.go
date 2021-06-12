@@ -58,13 +58,14 @@ type CenterResult struct {
 	Vaccine           string
 	AvailableCapacity int
 	Date              string
+	Fee               []VaccineFees
 }
 
 type Result struct {
 	results []CenterResult
 }
 
-func findVaccinationSlots(date string, district_id, age int) {
+func findVaccinationSlots(date, class string, district_id, age int) {
 	results := Result{[]CenterResult{}}
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", fmt.Sprintf("https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=%d&date=%s", district_id, date), nil)
@@ -87,7 +88,7 @@ func findVaccinationSlots(date string, district_id, age int) {
 	}
 	for _, center := range centers.Centers {
 		for _, session := range center.Sessions {
-			if session.MinAgeLimit <= age {
+			if session.MinAgeLimit <= age && session.Vaccine == class {
 				centerResult := CenterResult{
 					Name:              center.Name,
 					Address:           center.Address,
@@ -100,6 +101,7 @@ func findVaccinationSlots(date string, district_id, age int) {
 					Vaccine:           session.Vaccine,
 					AvailableCapacity: session.AvailableCapacity,
 					Date:              session.Date,
+					Fee:               center.VaccineFees,
 				}
 				results.results = append(results.results, centerResult)
 			}
@@ -118,8 +120,10 @@ func main() {
 	flag.StringVar(&date, "date", time.Now().Format("02-01-2006"), "Choose the start date, slots for next 7 days will be searched")
 	var district int
 	flag.IntVar(&district, "district", 1, "Select the district")
+	var class string
+	flag.StringVar(&class, "type", "COVAXIN", "type of vaccine")
 	flag.Parse()
-
-	findVaccinationSlots(date, district, age)
+	fmt.Printf("%s", class)
+	findVaccinationSlots(date, class, district, age)
 	return
 }
